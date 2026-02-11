@@ -85,7 +85,7 @@ const fetchStats = (p?: string | null) => {
 				endAt: Date.now().toString(),
 				unit: "hour",
 				timezone: config.timezone,
-				compare: "false",
+				compare: "prev",
 			});
 			if (p) params.set("path", `eq.${normalizePath(p)}`);
 			return fetch(
