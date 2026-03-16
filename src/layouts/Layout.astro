@@ -67,7 +67,7 @@ const siteLang = lang.replace("_", "-");
 <!doctype html>
 <html
     lang={siteLang}
-    class="bg-(--page-bg) transition text-[14px] md:text-[16px]"
+    class="bg-(--page-bg) transition text-[14px] md:text-[16px] initial-load"
     data-overlayscrollbars-initialize
 >
     <head>
@@ -401,27 +401,39 @@ function disableAnimation() {
         setHue(getHue());
     }
 
+    let bodyScrollbarInitialized = false;
+    let initialLoadAnimationCleared = false;
+
+    function clearInitialLoadAnimation() {
+        if (initialLoadAnimationCleared) return;
+        initialLoadAnimationCleared = true;
+        document.documentElement.classList.remove("initial-load");
+    }
+
     function initCustomScrollbar() {
         const bodyElement = document.querySelector("body");
         if (!bodyElement) return;
-        OverlayScrollbars(
-            // docs say that a initialization to the body element would affect native functionality like window.scrollTo
-            // but just leave it here for now
-            {
-                target: bodyElement,
-                cancel: {
-                    nativeScrollbarsOverlaid: true, // don't initialize the overlay scrollbar if there is a native one
+        if (!bodyScrollbarInitialized) {
+            OverlayScrollbars(
+                // docs say that a initialization to the body element would affect native functionality like window.scrollTo
+                // but just leave it here for now
+                {
+                    target: bodyElement,
+                    cancel: {
+                        nativeScrollbarsOverlaid: true, // don't initialize the overlay scrollbar if there is a native one
+                    },
                 },
-            },
-            {
-                scrollbars: {
-                    theme: "scrollbar-base scrollbar-auto py-1",
-                    autoHide: "move",
-                    autoHideDelay: 500,
-                    autoHideSuspend: false,
+                {
+                    scrollbars: {
+                        theme: "scrollbar-base scrollbar-auto py-1",
+                        autoHide: "move",
+                        autoHideDelay: 500,
+                        autoHideSuspend: false,
+                    },
                 },
-            },
-        );
+            );
+            bodyScrollbarInitialized = true;
+        }
 
         const katexElements = document.querySelectorAll(
             ".katex-display",
@@ -478,6 +490,7 @@ function disableAnimation() {
         loadTheme();
         loadHue();
         initCustomScrollbar();
+        window.setTimeout(clearInitialLoadAnimation, 1000);
     }
 
     /* Load settings when entering the site */
@@ -490,6 +503,7 @@ function disableAnimation() {
                 "--content-delay",
                 "0ms",
             );
+            clearInitialLoadAnimation();
         });
         window.swup.hooks.on("content:replace", initCustomScrollbar);
         window.swup.hooks.on(
